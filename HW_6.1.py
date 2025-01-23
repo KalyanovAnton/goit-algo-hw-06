@@ -89,15 +89,54 @@ visited_bfs = bfs_iterative(G, "A")
 print(f"\nВідвідані вершини (BFS): {visited_bfs}")
 
 
-# Реалізація алгоритму Дейкстрі
-shortest_paths = nx.single_source_dijkstra_path(G, source='A')
-shortest_path_lengths = nx.single_source_dijkstra_path_length(G, source='A')
+# Алгоритм Дейкстри
+def dijkstra(graph, start):
+    distances = {node: float('infinity') for node in graph.nodes}
+    previous_nodes = {node: None for node in graph.nodes}
+    distances[start] = 0
+    unvisited = set(graph.nodes)
+
+    while unvisited:
+        # Знаходження вершини з найменшою відстанню серед невідвіданих
+        current_node = min(unvisited, key=lambda node: distances[node])
+
+        # Якщо поточна відстань нескінченність, завершити цикл
+        if distances[current_node] == float('infinity'):
+            break
+
+        # Оновлення відстаней до сусідів
+        for neighbor, attributes in graph[current_node].items():
+            weight = attributes['weight']
+            distance = distances[current_node] + weight
+
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                previous_nodes[neighbor] = current_node
+
+        unvisited.remove(current_node)
+
+    # Формування шляхів
+    paths = {node: [] for node in graph.nodes}
+    for node in graph.nodes:
+        current = node
+        while current is not None:
+            paths[node].insert(0, current)
+            current = previous_nodes[current]
+
+    return distances, paths
+
+
+# Виконання алгоритму Дейкстри від вершини 'A'
+distances, paths = dijkstra(G, "A")
+
+# Виведення результатів
 print("\nРезультати виконання алгоритму Дейкстри (від вершини 'A'):")
 print("----------------------------------------------------------")
 print(f"{'Цільова вершина':<15}  {'Довжина шляху':<15}{'Шлях'}")
 print("----------------------------------------------------------")
-for target, path in shortest_paths.items():
-    print(f"{target:<20}{shortest_path_lengths[target]:<14}{' -> '.join(path)}") 
+for target in G.nodes:
+    print(f"{target:<15}{distances[target]:<15}{' -> '.join(paths[target])}")
+
     
 
 
